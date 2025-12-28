@@ -1,0 +1,991 @@
+from IPython.display import HTML
+from bs4 import BeautifulSoup
+
+# The existing HTML content from the notebook
+html_content = '''<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Dress</title>
+<style>
+  /* Reset & Base */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #3a3a3a;
+    background: #fffaf7;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  img {
+    max-width: 100%;
+    display: block;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    font-weight: 600;
+    background-color: #e76f51;
+    color: white;
+    padding: 0.6em 1.3em;
+    border-radius: 30px;
+    transition: background-color 0.3s ease;
+  }
+  button:hover,
+  button:focus {
+    background-color: #d3543b;
+  }
+
+  /* Container */
+  .container {
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+  }
+
+  /* Header */
+  header {
+    background: #fff;
+    padding: 1em 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  .nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    font-family: 'Brush Script MT', cursive;
+    font-size: 2rem;
+    color: #e76f51;
+    letter-spacing: 2px;
+  }
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.7em;
+  }
+  nav ul li a {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.5em;
+    color: #555;
+    transition: color 0.3s ease;
+  }
+  nav ul li a:hover,
+  nav ul li a:focus {
+    color: #e76f51;
+  }
+
+  /* Hero Section */
+  .hero {
+    background: url('https://images.unsplash.com/photo-1562157876-b9819928f92f?auto=format&fit=crop&w=1500&q=80') no-repeat center center/cover;
+    height: 75vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 0 1em;
+    position: relative;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(231, 111, 81, 0.45);
+    z-index: 0;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+  }
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5em;
+    text-shadow: 2px 2px 9px rgba(0,0,0,0.3);
+  }
+  .hero p {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 1.3em;
+    text-shadow: 1px 1px 6px rgba(0,0,0,0.3);
+  }
+  .hero button {
+    font-size: 1.1rem;
+    padding: 0.8em 2em;
+  }
+
+ /* Background slides */
+  .hero-slide {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-size: cover;
+    background-position: center center;
+    opacity: 0;
+    animation: fadeSlide 24s infinite;
+    z-index: 0;
+  }
+  .hero-slide:nth-child(1) {
+    background-image: url('https://www.weddingchicks.com/wp-content/uploads/2014/07/ombre-bridesmaid-dresses-2.jpg');
+    animation-delay: 0s;
+  }
+  .hero-slide:nth-child(2) {
+    background-image: url('https://serviceapp.sgp1.cdn.digitaloceanspaces.com/public/images/642e4ffd0532ab92d7b6249684c48b0e3c5830d2df20f.png');
+    animation-delay: 6s;
+  }
+  .hero-slide:nth-child(3) {
+    background-image: url('https://w.wallhaven.cc/full/ym/wallhaven-ym7mdk.jpg');
+    animation-delay: 12s;
+  }
+  .hero-slide:nth-child(4) {
+    background-image: url('https://s-media-cache-ak0.pinimg.com/736x/ab/54/2d/ab542dd887ba3e5ec92190e22495644e.jpg');
+    animation-delay: 18s;
+  }
+
+  @keyframes fadeSlide {
+    0%  { opacity: 0; }
+    8%  { opacity: 1; }
+    25% { opacity: 1; }
+    33% { opacity: 0; }
+    100%{ opacity: 0; }
+  }
+
+  /* Overlay */
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(231, 111, 81, 0.45);
+    z-index: 1;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+  }
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5em;
+    text-shadow: 2px 2px 9px rgba(0,0,0,0.4);
+  }
+  .hero p {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 1.3em;
+    text-shadow: 1px 1px 6px rgba(0,0,0,0.4);
+  }
+  .hero button {
+    font-size: 1.1rem;
+    padding: 0.8em 2em;
+  }
+
+
+  /* Products Section */
+  .products {
+    padding: 4em 0 2em;
+    background: #fff;
+  }
+  .products h2 {
+    text-align: center;
+    font-size: 2.7rem;
+    margin-bottom: 1em;
+    color: #e76f51;
+  }
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+    gap: 2.2em;
+  }
+  .product-card {
+    background: #fff6f2;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(231, 111, 81, 0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+  }
+  .product-card:hover,
+  .product-card:focus-within {
+    transform: translateY(-6px);
+  }
+  .product-img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+  }
+  .product-info {
+    padding: 1.2em 1em 2em;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .product-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.4em;
+    color: #cb4a34;
+  }
+  .product-price {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #a0432f;
+    margin-bottom: 1em;
+  }
+
+
+
+
+
+
+
+  /* Profile Section */
+  .profile {
+    background: #fff0e9;
+    padding: 3em 1em 4em;
+    max-width: 900px;
+    margin: 2em auto 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2em;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(231,111,81,0.15);
+  }
+  .profile img {
+    flex: 1 1 280px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+  .profile-text {
+    flex: 2 1 480px;
+    color: #5a3e36;
+  }
+  .profile-text h2 {
+    color: #e76f51;
+    font-size: 2.4rem;
+    margin-bottom: 0.8em;
+  }
+  .profile-text p {
+    font-size: 1.15rem;
+    line-height: 1.5;
+  }
+
+  /* About Section */
+  .about {
+    padding: 3em 1em 5em;
+    background: #fff0e9;
+    text-align: center;
+  }
+  .about h2 {
+    color: #e76f51;
+    font-size: 2.5rem;
+    margin-bottom: 0.7em;
+  }
+  .about p {
+    max-width: 700px;
+    margin: 0 auto;
+    color: #5a3e36;
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+
+
+
+  /* Blog Section */
+  .blog {
+    padding: 4em 0 2em;
+    background: #fff;
+  }
+  .blog h2 {
+    text-align: center;
+    font-size: 2.7rem;
+    margin-bottom: 1em;
+    color: #e76f51;
+  }
+  .blog-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+    gap: 2.2em;
+    padding: 0 1em; /* Added padding for smaller screens */
+  }
+  .blog-post-card {
+    background: #fff6f2;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(231, 111, 81, 0.15);
+    overflow: hidden;
+    padding: 1.5em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease;
+  }
+  .blog-post-card:hover {
+    transform: translateY(-5px);
+  }
+  .blog-post-card h3 {
+    font-size: 1.5rem;
+    color: #cb4a34;
+    margin-bottom: 0.8em;
+  }
+  .blog-post-card p {
+    font-size: 1rem;
+    color: #5a3e36;
+    margin-bottom: 1em;
+    flex-grow: 1;
+  }
+  .blog-post-card .read-more {
+    display: inline-block;
+    background-color: #e76f51;
+    color: white;
+    padding: 0.6em 1.2em;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    align-self: flex-start;
+  }
+  .blog-post-card .read-more:hover,
+  .blog-post-card .read-more:focus {
+    background-color: #d3543b;
+  }
+
+
+
+  /* New Section Styles */
+  .advantages, .faq-section {
+    padding: 4em 0 2em;
+    background: #fffaf7;
+  }
+  .advantages h2, .faq-section h2 {
+    text-align: center;
+    font-size: 2.7rem;
+    margin-bottom: 1em;
+    color: #e76f51;
+  }
+  .advantages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2em;
+    padding: 0 1em;
+  }
+  .advantage-card {
+    background: #fff6f2;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(231, 111, 81, 0.1);
+    padding: 1.5em;
+    text-align: center;
+  }
+  .advantage-card h3 {
+    font-size: 1.4rem;
+    color: #cb4a34;
+    margin-bottom: 0.6em;
+  }
+  .advantage-card p {
+    font-size: 1rem;
+    color: #5a3e36;
+  }
+  .faq-list {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1em;
+  }
+  .faq-item {
+    background: #fff6f2;
+    border-radius: 8px;
+    margin-bottom: 1em;
+    padding: 1.2em;
+    box-shadow: 0 2px 8px rgba(231, 111, 81, 0.08);
+  }
+  .faq-question {
+    font-weight: 600;
+    color: #cb4a34;
+    font-size: 1.1rem;
+    margin-bottom: 0.5em;
+  }
+  .faq-answer {
+    color: #5a3e36;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  footer {
+    background: #cb4a34;
+    color: #fff;
+    padding: 2em 1em;
+    text-align: center;
+  }
+  footer p {
+    margin-bottom: 0.8em;
+    font-size: 0.95rem;
+  }
+  .social-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.2em;
+    font-size: 1.4rem;
+  }
+  .social-links a {
+    color: white;
+    transition: color 0.3s ease;
+  }
+  .social-links a:hover,
+  .social-links a:focus {
+    color: #f9a28d;
+  }
+
+
+  /* Floating WhatsApp Button */
+  .whatsapp-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25d366; /* WhatsApp green */
+    border-radius: 50%; /* Make it round */
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    background-image: url('https://cdn-icons-png.flaticon.com/512/124/124034.png'); /* WhatsApp logo image */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60%; /* Adjust as needed */
+  }
+  .whatsapp-button:hover {
+    background-color: #128c7e; /* Darker green on hover */
+    transform: scale(1.05);
+  }
+  @media (max-width: 600px) {
+    .whatsapp-button {
+      width: 50px;
+      height: 50px;
+      bottom: 15px;
+      right: 15px;
+    }
+  }
+
+
+  /* Responsive adjustments */
+  @media (max-width: 900px) {
+    .profile {
+      flex-direction: column;
+    }
+  }
+  @media (max-width: 600px) {
+    .hero h1 {
+      font-size: 2rem;
+    }
+    .hero p {
+      font-size: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav-container">
+    <div class="logo" tabindex="0">My Dress</div>
+    <nav>
+      <ul>
+        <li><a href="#hero" tabindex="0">Beranda</a></li>
+        <li><a href="#products" tabindex="0">Toko</a></li>
+        <li><a href="#advantages" tabindex="0">Keunggulan</a></li>
+        <li><a href="#about" tabindex="0">Tentang</a></li>
+        <li><a href="#blog" tabindex="0">Blog</a></li>
+        <li><a href="#faq" tabindex="0">FAQ</a></li>
+        <li><a href="#contact" tabindex="0">Kontak</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Dress - Banner Slideshow</title>
+<style>
+  /* Reset & Base */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #3a3a3a;
+    background: #fffaf7;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    font-weight: 600;
+    background-color: #e76f51;
+    color: white;
+    padding: 0.6em 1.3em;
+    border-radius: 30px;
+    transition: background-color 0.3s ease;
+  }
+  button:hover,
+  button:focus {
+    background-color: #d3543b;
+  }
+
+  /* Container */
+  .container {
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+  }
+
+  /* Updated Hero Section with slideshow */
+  .hero {
+    position: relative;
+    height: 75vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 0 1em;
+    overflow: hidden;
+  }
+
+  /* Background slides */
+  .hero-slide {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-size: cover;
+    background-position: center center;
+    opacity: 0;
+    animation: fadeSlide 24s infinite;
+    z-index: 0;
+  }
+  .hero-slide:nth-child(1) {
+    background-image: url('https://www.weddingchicks.com/wp-content/uploads/2014/07/ombre-bridesmaid-dresses-2.jpg');
+    animation-delay: 0s;
+  }
+  .hero-slide:nth-child(2) {
+    background-image: url('https://serviceapp.sgp1.cdn.digitaloceanspaces.com/public/images/642e4ffd0532ab92d7b6249684c48b0e3c5830d2df20f.png');
+    animation-delay: 6s;
+  }
+  .hero-slide:nth-child(3) {
+    background-image: url('https://w.wallhaven.cc/full/ym/wallhaven-ym7mdk.jpg');
+    animation-delay: 12s;
+  }
+  .hero-slide:nth-child(4) {
+    background-image: url('https://s-media-cache-ak0.pinimg.com/736x/ab/54/2d/ab542dd887ba3e5ec92190e22495644e.jpg');
+    animation-delay: 18s;
+  }
+
+  @keyframes fadeSlide {
+    0%  { opacity: 0; } 
+    8%  { opacity: 1; }
+    25% { opacity: 1; }
+    33% { opacity: 0; }
+    100%{ opacity: 0; }
+  }
+
+  /* Overlay */
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(231, 111, 81, 0.45);
+    z-index: 1;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+  }
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5em;
+    text-shadow: 2px 2px 9px rgba(0,0,0,0.4);
+  }
+  .hero p {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 1.3em;
+    text-shadow: 1px 1px 6px rgba(0,0,0,0.4);
+  }
+  .hero button {
+    font-size: 1.1rem;
+    padding: 0.8em 2em;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .hero h1 {
+      font-size: 2rem;
+    }
+    .hero p {
+      font-size: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero" id="hero" aria-label="Banner utama toko My Dress dengan slideshow latar belakang">
+  <div class="hero-slide"></div>
+  <div class="hero-slide"></div>
+  <div class="hero-slide"></div>
+  <div class="hero-slide"></div>
+
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>My Dress – Sewa Dress Jabodetabek untuk Wedding & Pesta</h1>
+    <p>Tampil menawan dengan koleksi sewa dress eksklusif untuk wedding, pesta, dan acara spesial di Jabodetabek.</p>
+    <button type="button" onclick="document.getElementById('products')?.scrollIntoView({behavior: 'smooth'})" aria-label="Tombol Belanja Sekarang">Belanja Sekarang</button>
+  </div>
+</section>
+
+</body>
+</html>
+
+
+<section class="products container" id="products" aria-label="Produk dress tersedia">
+  <h2>Dress Pilihan</h2>
+  <div class="product-grid">
+
+    <article class="product-card" tabindex="0" aria-label="Gaun Pengantin A-Line Putih, harga Rp 450.000">
+      <img class="product-img" src="https://tse4.mm.bing.net/th/id/OIP.NJx-MJu9dsf-YZN-LFVd0wHaHa?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Gaun Pengantin Ball Gawn Putih" />
+      <div class="product-info">
+        <h3 class="product-name">Gaun Pengantin Ball Gawn Putih</h3>
+        <p class="product-price">Rp 450.000</p>
+        <button type="button" aria-label="Sewa Gaun Pengantin A-Line Putih sekarang">Sewa Sekarang</button>
+      </div>
+    </article>
+
+    <article class="product-card" tabindex="0" aria-label="Dress Pesta Hitam Elegan, harga Rp 380.000">
+      <img class="product-img" src="https://i.etsystatic.com/41246680/r/il/dc0cb7/5033344097/il_fullxfull.5033344097_np39.jpg" />
+      <div class="product-info">
+        <h3 class="product-name">Dress Pesta Hitam Elegan</h3>
+        <p class="product-price">Rp 380.000</p>
+        <button type="button" aria-label="Sewa Dress Pesta Hitam Elegan sekarang">Sewa Sekarang</button>
+      </div>
+    </article>
+
+    <article class="product-card" tabindex="0" aria-label="Gaun Pengantin Duyung Modern, harga Rp 320.000">
+      <img class="product-img" src="https://i.pinimg.com/originals/5c/0f/64/5c0f64adf7780080d2a0e2ddf2cb19d2.jpg" />
+      <div class="product-info">
+        <h3 class="product-name">Gaun Pengantin Duyung Modern</h3>
+        <p class="product-price">Rp 320.000</p>
+        <button type="button" aria-label="Sewa Gaun Pengantin Duyung Modern sekarang">Sewa Sekarang</button>
+      </div>
+    </article>
+
+    <article class="product-card" tabindex="0" aria-label="Gaun Pengantin India , harga Rp 290.000">
+      <img class="product-img" src="https://cdn-image.hipwee.com/wp-content/uploads/2017/07/hipwee-india1.jpg" />
+      <div class="product-info">
+        <h3 class="product-name">Gaun Pengantin Ball Gown Mewah</h3>
+        <p class="product-price">Rp 290.000</p>
+        <button type="button" aria-label="Sewa Gaun Pengantin India">Sewa Sekarang</button>
+      </div>
+    </article>
+
+    <article class="product-card" tabindex="0" aria-label="Gaun Pengantin Minimalis Satin, harga Rp 410.000">
+      <img class="product-img" src="https://cdn.shopify.com/s/files/1/0018/8622/4428/products/a-line-satin-formal-wedding-gown-with-lace-sleeves-1_1024x1024.jpg?v=1571869710" alt="Gaun Pengantin Minimalis Satin" />
+      <div class="product-info">
+        <h3 class="product-name">Gaun Pengantin Minimalis Satin</h3>
+        <p class="product-price">Rp 410.000</p>
+        <button type="button" aria-label="Sewa Gaun Pengantin Minimalis Satin sekarang">Sewa Sekarang</button>
+      </div>
+    </article>
+
+    <article class="product-card" tabindex="0" aria-label="Dress Satin Biru, harga Rp 470.000">
+      <img class="product-img" src="https://www.alinanova.com/cdn/shop/products/Prom-Dresses-Style-7873-Navy_1024x1024@2x.jpg?v=1608865017" />
+      <div class="product-info">
+        <h3 class="product-name">Dress Satin Biru</h3>
+        <p class="product-price">Rp 470.000</p>
+        <button type="button" aria-label="Sewa Dress Satin Biru sekarang">Sewa Sekarang</button>
+      </div>
+    </article>
+
+    <article class="product-card" tabindex="0" aria-label="Dress Bohemian Floral, harga Rp 350.000">
+      <img class="product-img" src="https://i.pinimg.com/736x/ef/c4/1e/efc41e7967c58d67abe21ae4db70187c.jpg" />
+      <div class="product-info">
+        <h3 class="product-name">Dress Bohemian Floral</h3>
+        <p class="product-price">Rp 350.000</p>
+        <button type="button" aria-label="Sewa Dress Bohemian Floral sekarang">Sewa Sekarang</button>
+      </div>
+    </article>
+
+    <article class="product-card" tabindex="0" aria-label="Kebaya Putih, harga Rp 565.000">
+      <img class="product-img" src="https://i.pinimg.com/736x/ce/7a/ce/ce7ace86de30ce93c90af56c953ae143.jpg" />
+      <div class="product-info">
+        <h3 class="product-name">Kebaya Putih</h3>
+        <p class="product-price">Rp 565.000</p>
+        <button type="button" aria-label="Sewa Kebaya Putih sekarang">Sewa Sekarang</button>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<img src="Toko My Dress.png">
+<section class="about" id="about" aria-label="Tentang My Dress">
+  <div class="container">
+    <h2>Tentang My Dress</h2>
+    <p>My Dress hadir untuk membantu setiap wanita tampil anggun dan percaya diri. Kami menawarkan koleksi dress berkualitas dengan desain elegan dan modis untuk berbagai acara. Dengan pilihan yang beragam dan kenyamanan berbelanja, My Dress siap menjadi sahabat gaya Anda dalam menampilkan versi terbaik dari diri sendiri.
+      Semua koleksi kami dirancang dengan detail dan mengikuti tren terkini. Karena kami percaya, setiap wanita berhak merasa cantik di setiap kesempatan.</p>
+  </div>
+</section>
+
+<section class="advantages container" id="advantages" aria-label="Keunggulan My Dress">
+  <h2>Keunggulan My Dress</h2>
+  <div class="advantages-grid">
+    <div class="advantage-card">
+      <h3>Koleksi Eksklusif</h3>
+      <p>Kami menyediakan koleksi dress yang unik dan tidak pasaran, dipilih khusus untuk Anda.</p>
+    </div>
+    <div class="advantage-card">
+      <h3>Kualitas Premium</h3>
+      <p>Setiap dress dibuat dengan material berkualitas tinggi dan jahitan yang rapi.</p>
+    
+    </div>
+    <div class="advantage-card">
+      <h3>Harga Terjangkau</h3>
+      <p>Nikmati kemewahan tanpa harus menguras dompet dengan harga sewa yang bersahabat.</p>
+    </div>
+    <div class="advantage-card">
+      <h3>Pelayanan Prima</h3>
+      <p>Tim kami siap membantu Anda menemukan dress sempurna dan memberikan pengalaman terbaik.</p>
+    </div>
+  </div>
+</section>
+
+<section class="blog container" id="blog" aria-label="Blog My Dress">
+  <h2>Blog Terbaru</h2>
+  <div class="blog-posts-grid">
+    <article class="blog-post-card">
+      <h3>Tren Gaun Pesta 2024</h3>
+      <p>Pelajari tren gaun pesta terbaru untuk tampil memukau di setiap acara Anda.</p>
+      <a href="#" class="read-more">Baca Selengkapnya</a>
+    </article>
+    <article class="blog-post-card">
+      <h3>Memilih Dress yang Tepat untuk Bentuk Tubuh Anda</h3>
+      <p>Panduan lengkap untuk menemukan dress yang paling menyanjung bentuk tubuh Anda.</p>
+      <a href="#" class="read-more">Baca Selengkapnya</a>
+    </article>
+    <article class="blog-post-card">
+      <h3>Tips Merawat Gaun Favorit Anda</h3>
+      <p>Cara menjaga gaun Anda tetap indah dan tahan lama dengan tips perawatan dari kami.</p>
+      <a href="#" class="read-more">Baca Selengkapnya</a>
+    </article>
+  </div>
+</section>
+
+<section class="faq-section container" id="faq" aria-label="Pertanyaan Umum My Dress">
+  <h2>FAQ (Cara Sewa)</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <h3 class="faq-question">Bagaimana cara menyewa dress?</h3>
+      <p class="faq-answer">Pilih dress yang Anda inginkan, masukkan tanggal sewa, lakukan pembayaran, dan dress akan kami kirimkan.</p>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-question">Berapa lama periode sewanya?</h3>
+      <p class="faq-answer">Periode sewa standar adalah 3 hari, namun Anda bisa menghubungi kami untuk opsi durasi lebih panjang.</p>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-question">Apakah ada biaya tambahan untuk pengiriman?</h3>
+      <p class="faq-answer">Biaya pengiriman disesuaikan dengan lokasi Anda dan akan diinformasikan saat checkout.</p>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-question">Bagaimana jika dress rusak atau kotor?</h3>
+      <p class="faq-answer">Kami mengenakan biaya tambahan untuk kerusakan atau noda yang tidak bisa dihilangkan. Mohon baca syarat dan ketentuan kami.</p>
+     няколко(по-скоро)</div>
+  </div>
+</section>
+
+<section class="contact container" id="contact" aria-label="Formulir kontak My Dress">
+  <h2>Kontak Kami</h2>
+  <form action="#" method="post" novalidate>
+    <label for="name">Nama Lengkap</label>
+    <input type="text" id="name" name="name" placeholder="Nama Anda" required />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" placeholder="email@example.com" required />
+
+    <label for="subject">Subjek</label>
+    <input type="text" id="subject" name="subject" placeholder="Subjek pesan" required />
+
+    <label for="message">Pesan</label>
+    <textarea id="message" name="message" placeholder="Tulis pesan Anda di sini..." required></textarea>
+
+    <button type="submit" aria-label="Kirim Pesan">Kirim Pesan</button>
+  </form>
+</section>
+
+<section class="social-media container" aria-label="Akun media sosial My Dress">
+  <h2>Ikuti Kami</h2>
+  <div class="social-icons">
+    <a href="#" aria-label="Facebook My Dress" tabindex="0" target="_blank" rel="noopener noreferrer" class="social-link facebook-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook logo" class="social-logo" />
+    </a>
+    <a href="https://instagram.com/beautifi_10" aria-label="Instagram My Dress" tabindex="0" target="_blank" rel="noopener noreferrer" class="social-link instagram-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram logo" class="social-logo" />
+    </a>
+    <a href="#" aria-label="X My Dress" tabindex="0" target="_blank" rel="noopener noreferrer" class="social-link twitter-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X logo" class="social-logo" />
+    </a>
+  </div>
+</section>
+
+<footer id="footer" aria-label="Footer My Dress">
+  <p>© 2024 My Dress. Semua hak dilindungi.</p>
+</footer>
+
+<!-- Floating WhatsApp Button -->
+<a href="https://wa.me/6289508779540" class="whatsapp-button" target="_blank" aria-label="Hubungi kami via WhatsApp">
+</a>
+
+
+<style>
+  .contact {
+    background: #fef5f1;
+    padding: 3em 1em 4em;
+    max-width: 700px;
+    margin: 3em auto 2em auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(231,111,81,0.15);
+  }
+  .contact h2 {
+    color: #e76f51;
+    font-size: 2.5rem;
+    margin-bottom: 1em;
+    text-align: center;
+  }
+  .contact form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2em;
+  }
+  .contact label {
+    font-weight: 600;
+    color: #a0432f;
+    margin-bottom: 0.3em;
+  }
+  .contact input,
+  .contact textarea {
+    padding: 0.75em 1em;
+    border: 2px solid #e76f51;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+  }
+  .contact textarea {
+    min-height: 120px;
+  }
+  .contact button {
+    align-self: center;
+    padding: 0.75em 2.5em;
+    font-size: 1.2rem;
+    background-color: #e76f51;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .contact button:hover,
+  .contact button:focus {
+    background-color: #d3543b;
+  }
+
+  .social-media {
+    max-width: 700px;
+    margin: 0 auto 3em auto;
+    text-align: center;
+  }
+  .social-media h2 {
+    color: #e76f51;
+    font-size: 2rem;
+    margin-bottom: 0.8em;
+  }
+  .social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 1.5em; /* Adjusted gap for image logos */
+    flex-wrap: wrap;
+  }
+  .social-icons a {
+    display: flex; /* To center the image */
+    justify-content: center;
+    align-items: center;
+    width: 50px; /* Define size of the clickable area */
+    height: 50px;
+    border-radius: 50%; /* Make clickable area round */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .social-icons a:hover,
+  .social-icons a:focus {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  .social-icons a img.social-logo {
+    width: 80%; /* Size of the image inside the round button */
+    height: 80%;
+    object-fit: contain;
+  }
+
+  /* Specific background colors for the clickable area, not the image itself */
+  .social-icons .facebook-link { background-color: #0000000; }
+  .social-icons .facebook-link:hover { background-color: #2d4279; }
+  .social-icons .instagram-link { background-color: #e1306c; }
+  .social-icons .instagram-link:hover { background-color: #b12452; }
+  .social-icons .twitter-link { background-color: #000000; } /* Using black for X logo */
+  .social-icons .twitter-link:hover { background-color: #333333; }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .social-icons {
+      gap: 1em; /* Smaller gap on small screens */
+    }
+    .social-icons a {
+      width: 45px;
+      height: 45px;
+    }
+  }
+
+
+
+
+
+
+'''
+
+soup = BeautifulSoup(html_content, 'html.parser')
+print("HTML content parsed successfully with BeautifulSoup.")
